@@ -118,38 +118,7 @@ async def get_users(db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Error fetching users: {str(e)}")
 
 
-@app.post("/login")
-async def login(user_login: UserLogin, db: AsyncSession = Depends(get_db)):
-    try:
-        logger.info(f"Login attempt for email: {user_login.email}")
-        
-        # Find user by email
-        result = await db.execute(select(User).filter(User.email == user_login.email))
-        existing_user = result.scalar_one_or_none()
-        
-        if not existing_user:
-            logger.warning(f"Login attempt with non-existent email: {user_login.email}")
-            raise HTTPException(status_code=400, detail="Invalid email or password")
-        
-        # Verify password
-        if not bcrypt.verify(user_login.password, existing_user.password):
-            logger.warning(f"Failed login attempt for email: {user_login.email}")
-            raise HTTPException(status_code=400, detail="Invalid email or password")
-        
-        # Create session or JWT token here
-        # For this example, we'll return user details
-        logger.info(f"Successful login for email: {user_login.email}")
-        return {
-            "id": existing_user.id,
-            "username": existing_user.username,
-            "email": existing_user.email
-        }
-    
-    except Exception as e:
-        logger.error(f"Error during login: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-        
 # In your main.py, include the router
 app.include_router(router)
 
